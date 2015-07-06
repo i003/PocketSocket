@@ -84,7 +84,7 @@ typedef NS_ENUM(NSInteger, PSWebSocketDriverState) {
     NSDictionary *headers = request.allHTTPHeaderFields;
     if(headers[@"Sec-WebSocket-Key"] &&
        [headers[@"Sec-WebSocket-Version"] isEqualToString:@"13"] &&
-       [[headers[@"Connection"] lowercaseString] isEqualToString:@"upgrade"] &&
+       ([[headers[@"Connection"] lowercaseString] rangeOfString:@"upgrade"].location != NSNotFound) &&
        [[headers[@"Upgrade"] lowercaseString] isEqualToString:@"websocket"] &&
        [request.HTTPMethod.lowercaseString isEqualToString:@"get"] &&
        request.HTTPBody.length == 0) {
