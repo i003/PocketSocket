@@ -68,6 +68,7 @@ void PSWebSocketServerAcceptCallback(CFSocketRef s, CFSocketCallBackType type, C
     
     NSArray *_SSLCertificates;
     BOOL _secure;
+	NSNumber *_clientSideAuthentication;
     
     NSData *_addrData;
     CFSocketContext _socketContext;
@@ -95,12 +96,15 @@ void PSWebSocketServerAcceptCallback(CFSocketRef s, CFSocketCallBackType type, C
 #pragma mark - Initialization
 
 + (instancetype)serverWithHost:(NSString *)host port:(NSUInteger)port {
-    return [[self alloc] initWithHost:host port:port SSLCertificates:nil];
+    return [[self alloc] initWithHost:host port:port SSLCertificates:nil clientSideAuthentication:nil];
 }
 + (instancetype)serverWithHost:(NSString *)host port:(NSUInteger)port SSLCertificates:(NSArray *)SSLCertificates {
-    return [[self alloc] initWithHost:host port:port SSLCertificates:SSLCertificates];
+    return [[self alloc] initWithHost:host port:port SSLCertificates:SSLCertificates clientSideAuthentication:nil];
 }
-- (instancetype)initWithHost:(NSString *)host port:(NSUInteger)port SSLCertificates:(NSArray *)SSLCertificates {
++ (instancetype)serverWithHost:(NSString *)host port:(NSUInteger)port SSLCertificates:(NSArray *)SSLCertificates clientSideAuthentication:(NSNumber *)clientSideAuthentication{
+	return [[self alloc] initWithHost:host port:port SSLCertificates:SSLCertificates clientSideAuthentication:clientSideAuthentication];
+}
+- (instancetype)initWithHost:(NSString *)host port:(NSUInteger)port SSLCertificates:(NSArray *)SSLCertificates clientSideAuthentication:(NSNumber *)clientSideAuthentication{
     NSParameterAssert(port);
     if((self = [super init])) {
         _workQueue = dispatch_queue_create(nil, nil);
@@ -108,6 +112,7 @@ void PSWebSocketServerAcceptCallback(CFSocketRef s, CFSocketCallBackType type, C
         // copy SSL certificates
         _SSLCertificates = [SSLCertificates copy];
         _secure = (_SSLCertificates != nil);
+		_clientSideAuthentication = clientSideAuthentication;
         
         // create addr data
         struct sockaddr_in addr;
@@ -274,9 +279,16 @@ void PSWebSocketServerAcceptCallback(CFSocketRef s, CFSocketCallBackType type, C
             CFReadStreamSetProperty(readStream, kCFStreamPropertySSLSettings, (__bridge CFDictionaryRef)opts);
             CFWriteStreamSetProperty(writeStream, kCFStreamPropertySSLSettings, (__bridge CFDictionaryRef)opts);
 
-            SSLContextRef context = (SSLContextRef)CFWriteStreamCopyProperty(writeStream, kCFStreamPropertySSLContext);
-            SSLSetClientSideAuthenticate(context, kTryAuthenticate);
-            CFRelease(context);
+			if ( _clientSideAuthentication != nil )
+			{
+				int sslAuth = [_clientSideAuthentication intValue];
+				if ( sslAuth == kTryAuthenticate || sslAuth == kAlwaysAuthenticate || sslAuth == kNeverAuthenticate )
+				{
+					SSLContextRef context = (SSLContextRef)CFWriteStreamCopyProperty(writeStream, kCFStreamPropertySSLContext);
+					SSLSetClientSideAuthenticate(context, kTryAuthenticate);
+					CFRelease(context);
+				}
+			}
         }
         
         // create connection

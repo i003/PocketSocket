@@ -50,6 +50,7 @@
 
 + (instancetype)serverWithHost:(NSString *)host port:(NSUInteger)port;
 + (instancetype)serverWithHost:(NSString *)host port:(NSUInteger)port SSLCertificates:(NSArray *)SSLCertificates;
++ (instancetype)serverWithHost:(NSString *)host port:(NSUInteger)port SSLCertificates:(NSArray *)SSLCertificates clientSideAuthentication:(NSNumber *)clientSideAuthentication;
 
 #pragma mark - Actions
 
