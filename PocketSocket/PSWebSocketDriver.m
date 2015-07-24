@@ -861,11 +861,15 @@ typedef NS_ENUM(NSInteger, PSWebSocketDriverState) {
         }
         // server mode
         else if(_mode == PSWebSocketModeServer) {
-            // set the window bits the client must use
-            [components addObject:[NSString stringWithFormat:@"client_max_window_bits=%@", @(-_pmdClientWindowBits)]];
-            
-            // set the window bits the server will use
-            [components addObject:[NSString stringWithFormat:@"server_max_window_bits=%@", @(-_pmdServerWindowBits)]];
+			if ( _pmdClientWindowBits != -15 ){
+				// set the window bits the client must use
+				[components addObject:[NSString stringWithFormat:@"client_max_window_bits=%@", @(-_pmdClientWindowBits)]];
+			}
+			
+			if ( _pmdServerWindowBits != -15 ){				
+				// set the window bits the server will use
+				[components addObject:[NSString stringWithFormat:@"server_max_window_bits=%@", @(-_pmdServerWindowBits)]];
+			}
         }
         return components;
     }
@@ -873,9 +877,9 @@ typedef NS_ENUM(NSInteger, PSWebSocketDriverState) {
 }
 - (BOOL)pmdConfigureWithExtensionsHeaderComponents:(NSArray *)components {
     _pmdEnabled = NO;
-    _pmdClientWindowBits = -11;
+    _pmdClientWindowBits = -15;
     _pmdClientNoContextTakeover = NO;
-    _pmdServerWindowBits = -11;
+    _pmdServerWindowBits = -15;
     _pmdServerNoContextTakeover = NO;
     
     for(NSString *component in components) {
